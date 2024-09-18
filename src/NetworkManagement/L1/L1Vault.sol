@@ -25,7 +25,7 @@ import "@othentic/NetworkManagement/Common/RolesLibrary.sol";
 contract L1Vault is Vault {
     
     function setAvsGovernance(address _avsGovernance) external onlyRole(RolesLibrary.AVS_FACTORY_ROLE) {
-        _getStorge().ownerVault = _avsGovernance;
+        _getStorage().ownerVault = _avsGovernance;
         _grantRole(RolesLibrary.AVS_GOVERNANCE, _avsGovernance);
     }
     
@@ -34,6 +34,6 @@ contract L1Vault is Vault {
     }
 
     function getAvsGovernance() external view returns (address avsGovernance) {
-        return _getStorge().ownerVault;
+        return _getStorage().ownerVault;
     }
 }

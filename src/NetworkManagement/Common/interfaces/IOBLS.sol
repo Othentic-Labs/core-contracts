@@ -29,6 +29,7 @@ interface IOBLS {
   error OperatorDoesNotHaveMinimumVotingPower(uint256 _operatorIndex);
   error InvalidRequiredVotingPower(); 
 
+  event SetOBLSManager(address newOBLSManager);
   event SharesSyncerModified(address syncer);
 
   function totalVotingPower() external view returns(uint256);
@@ -36,17 +37,8 @@ interface IOBLS {
   function votingPower(uint256 _index) external view returns(uint256);
 
   function totalVotingPowerPerTaskDefinition(uint256 _id) external view returns (uint256);
-
-  // @obsolete - use totalVotingPower
-  function totalNumOfSharesOfOperatorsSet() external view returns(uint256);
-
-  // @obsolete - use votingPower
-  function numOfShares(uint256 _index) external view returns(uint256);
   
   function isActive(uint256 _index) external view returns(bool) ;
-
-  // @obsolete - use one with min voting power
-  function verifySignature(uint256[2] calldata _message, uint256[2] calldata _signature,  uint256[] calldata _indexes, uint256 _requiredVotingPower) external view;
 
   function verifySignature(uint256[2] calldata _message, uint256[2] calldata _signature,  uint256[] calldata _indexes, uint256 _requiredVotingPower, uint256 _minimumVotingPowerPerTaskDefinition) external view;
 
@@ -64,10 +56,6 @@ interface IOBLS {
 
   function modifyOperatorBlsKey(uint256 _index, uint256[4] memory _blsKey) external;
 
-  // @obsolete - use modifyOperatorVotingPower
-  function modifyOperatorShares(uint256 _index, uint256 _numOfShares) external;
-
-  function modifyOperatorVotingPower(uint256 _index, uint256 _votingPower) external;
 
   function increaseOperatorVotingPower(uint256 _index, uint256 _votingPower) external;
   

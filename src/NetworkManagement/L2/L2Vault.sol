@@ -26,7 +26,7 @@ import "@othentic/NetworkManagement/Common/RolesLibrary.sol";
 contract L2Vault is Vault  {
     
     function setAttestationCenter(address _attestationCenter) external onlyRole(RolesLibrary.AVS_FACTORY_ROLE) {
-        _getStorge().ownerVault = _attestationCenter;
+        _getStorage().ownerVault = _attestationCenter;
         _grantRole(RolesLibrary.ATTESTATION_CENTER, _attestationCenter);
     }
 
@@ -35,6 +35,6 @@ contract L2Vault is Vault  {
     }
 
     function getAttestationCenter() external view returns (address attestationCenter) {
-        return _getStorge().ownerVault;
+        return _getStorage().ownerVault;
     }
 }

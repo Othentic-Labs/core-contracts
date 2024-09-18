@@ -22,4 +22,6 @@ library RolesLibrary {
     bytes4 internal constant LZ_RETRY_ROLE  = bytes4(keccak256("LZ_RETRY"));
     bytes4 internal constant AVS_FACTORY_ROLE  = bytes4(keccak256("AVS_FACTORY_ROLE"));
     bytes4 internal constant MULTIPLIER_SYNCER = bytes4(keccak256("MULTIPLIER_SYNCER"));
+    bytes4 internal constant VOTING_POWER_SYNCER = bytes4(keccak256("VOTING_POWER_SYNCER"));
+    bytes4 internal constant OBLS_MANAGER = bytes4(keccak256("OBLS_MANAGER"));
 }

@@ -52,10 +52,11 @@ contract AttestationCenter is IAttestationCenter, AttestationCenterPausable, Ree
         require(_vault != address(0), "AttestationCenter: Invalid input");
         __OthenticAccessControl_init(_avsGovernanceMultisigOwner, _operationsMultisig, _communityMultisig);
         __AttestationCenterPausable_init(_avsGovernanceMultisigOwner, _operationsMultisig, _communityMultisig);
+        __ReentrancyGuard_init();
         AttestationCenterStorageData storage _sd = _getStorage();
         _sd.numOfTotalOperators = 0;
         _sd.taskNumber = 1;
-        _sd.baseRewardFee = 10000000000000000000;
+        _sd.baseRewardFee = 10 ** 19;
         _sd.obls = IOBLS(_obls);
         _sd.messageHandler = IMessageHandler(_messageHandler);
         _sd.isRewardsOnL2 = _isRewardsOnL2;
@@ -517,11 +518,11 @@ contract AttestationCenter is IAttestationCenter, AttestationCenterPausable, Ree
     function _verifyRestrictedOperators(TaskDefinition memory _taskDefinition, uint256[] memory _attesterIndexes) private pure {
         uint256[] memory _restrictedOperatorIndexes = _taskDefinition.restrictedOperatorIndexes;
         if (_restrictedOperatorIndexes.length < _attesterIndexes.length) revert InvalidAttesterSet();
-        uint256 _invalidIndex = _verifiyArraySubset(_attesterIndexes, _restrictedOperatorIndexes);
+        uint256 _invalidIndex = _verifyArraySubset(_attesterIndexes, _restrictedOperatorIndexes);
         if (_invalidIndex > 0) revert InvalidRestrictedOperator(_taskDefinition.taskDefinitionId, _invalidIndex);
     }
 
-    function _verifiyArraySubset(uint256[] memory _arr1, uint256[] memory _arr2) private pure returns (uint256) {
+    function _verifyArraySubset(uint256[] memory _arr1, uint256[] memory _arr2) private pure returns (uint256) {
         uint256 i = 0; 
         uint256 j = 0;
         while (i < _arr1.length && j < _arr2.length) {
