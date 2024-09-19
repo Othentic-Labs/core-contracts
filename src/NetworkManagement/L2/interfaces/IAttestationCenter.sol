@@ -60,7 +60,6 @@ interface IAttestationCenter is IAccessControl {
     event SetAvsLogic(address avsLogic);
     event SetBeforePaymentsLogic(address paymentsLogic);
     event SetAvsGovernanceMultisig(address newAvsGovernanceMultisig);
-    event SetObls(address obls);
     event SetMessageHandler(address newMessageHandler);
     event RewardAccumulated(uint256 indexed _operatorId, uint256 _baseRewardFeeForOperator, uint32 indexed _taskNumber);
     event SetFeeCalculator(address feeCalculator);

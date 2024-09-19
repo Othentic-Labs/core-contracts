@@ -17,10 +17,13 @@ $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  * @notice Depending on the application, it may be necessary to add reentrancy gaurds to hooks
  */
+ 
+import { IAttestationCenter } from "@othentic/NetworkManagement/L2/interfaces/IAttestationCenter.sol";
+
 interface IFeeCalculator {
 
     struct FeeCalculatorData {
-        bytes data;
+        IAttestationCenter.TaskInfo data;
         uint256 aggregatorId;
         uint256 performerId;
         uint256[] attestersIds;

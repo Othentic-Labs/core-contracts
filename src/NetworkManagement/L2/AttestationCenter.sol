@@ -274,11 +274,6 @@ contract AttestationCenter is IAttestationCenter, AttestationCenterPausable, Ree
     }
 
     // ------------------ Operations Interface ------------------
-    
-    function setObls(address _obls) external onlyRole(RolesLibrary.OPERATIONS_MULTISIG) {
-        _getStorage().obls = IOBLS(_obls);
-        emit SetObls(_obls);
-    }
 
     function setOblsSharesSyncer(address _oblsSharesSyncer) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) {
         _getStorage().obls.setOblsSharesSyncer(_oblsSharesSyncer);
@@ -341,7 +336,7 @@ contract AttestationCenter is IAttestationCenter, AttestationCenterPausable, Ree
         IOBLS _obls = _sd.obls;
         if (!_obls.isActive(_taskPerformerId)) revert InactiveTaskPerformer();
         if (!_obls.isActive(_aggregatorId)) revert InactiveAggregator();
-        IFeeCalculator.FeeCalculatorData memory _feeCalculatorData = IFeeCalculator.FeeCalculatorData(_taskInfo.data, _aggregatorId, _taskPerformerId, _attestersIds);
+        IFeeCalculator.FeeCalculatorData memory _feeCalculatorData = IFeeCalculator.FeeCalculatorData(_taskInfo, _aggregatorId, _taskPerformerId, _attestersIds);
 
         IFeeCalculator _feeCalculator = _sd.feeCalculator;
         bool _isFeeCalculatorSet = address(_feeCalculator) != address(0);
