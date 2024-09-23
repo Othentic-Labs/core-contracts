@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.25;
 /*______     __      __                              __      __ 
  /      \   /  |    /  |                            /  |    /  |
 /$$$$$$  | _$$ |_   $$ |____    ______   _______   _$$ |_   $$/   _______ 
@@ -131,7 +131,7 @@ contract AvsGovernance is IAvsGovernance, AvsGovernancePausable, ReentrancyGuard
     function queueRewardsReceiverModification(address _newRewardsReceiver) external onlyRegisteredOperator whenFlowNotPaused(PauserRolesLibrary.OPERATOR_SET_REWARDS_RECEIVER_FLOW) {
         if (_newRewardsReceiver == address(0)) revert InvalidRewardsReceiver();
         AvsGovernanceStorageData storage _sd = _getStorage();
-        _sd.isReqestPaymentPaused[msg.sender] = true;
+        _sd.isRequestPaymentPaused[msg.sender] = true;
         uint256 _modificationDelay = block.timestamp + _sd.rewardsReceiverModificationDelay;
         _sd.rewardsReceiverModificationDetails[msg.sender] = RewardsReceiverModificationDetails(_newRewardsReceiver, _modificationDelay);
         emit QueuedRewardsReceiverModification(msg.sender, _newRewardsReceiver, _modificationDelay);
@@ -141,7 +141,7 @@ contract AvsGovernance is IAvsGovernance, AvsGovernancePausable, ReentrancyGuard
         AvsGovernanceStorageData storage _sd = _getStorage();
         if (block.timestamp < _sd.rewardsReceiverModificationDetails[msg.sender].modificationDelay) revert ModificationDelayNotPassed();
         _setRewardsReceiver(_sd, _sd.rewardsReceiverModificationDetails[msg.sender].newRewardsReceiver);
-        _sd.isReqestPaymentPaused[msg.sender] = false;
+        _sd.isRequestPaymentPaused[msg.sender] = false;
         _sd.rewardsReceiverModificationDetails[msg.sender] = RewardsReceiverModificationDetails(address(0), 0); 
     }
 
@@ -193,7 +193,7 @@ contract AvsGovernance is IAvsGovernance, AvsGovernancePausable, ReentrancyGuard
     /// @dev Can only be called by AttestationCenter::requestPayment using MessageHandler, pauseFlow protection is enforced on AttestationCenter.  
     function withdrawRewards(address _operator, uint256 _lastPayedTask, uint256 _feeToClaim) external onlyRole(RolesLibrary.MESSAGE_HANDLER)  {
         AvsGovernanceStorageData storage _sd = _getStorage();
-        if(_sd.isReqestPaymentPaused[_operator]) {
+        if(_sd.isRequestPaymentPaused[_operator]) {
             _triggerL2Clearance(_sd, _operator, _lastPayedTask, 0);
         } else {
             IVault _vault = _sd.vault;

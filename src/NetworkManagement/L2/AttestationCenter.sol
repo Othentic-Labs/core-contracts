@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.25;
 /*______     __      __                              __      __ 
  /      \   /  |    /  |                            /  |    /  |
 /$$$$$$  | _$$ |_   $$ |____    ______   _______   _$$ |_   $$/   _______ 
@@ -316,14 +316,14 @@ contract AttestationCenter is IAttestationCenter, AttestationCenterPausable, Ree
             if (_taskDefinition.restrictedOperatorIndexes.length > 0) _verifyRestrictedOperators(_taskDefinition, _taskSubmissionDetails.attestersIds);
         }
         _verifyAggregatedSignature(_obls, _taskSubmissionDetails.isApproved, _taskInfo.taskDefinitionId, _taskDefinition, _taskSubmissionDetails.taSignature, _taskSubmissionDetails.attestersIds, _message);
-        _submitTaskBussinesLogic(_sd, _taskInfo, _taskDefinition, _taskSubmissionDetails.isApproved, _taskSubmissionDetails.attestersIds);
+        _submitTaskBusinessLogic(_sd, _taskInfo, _taskDefinition, _taskSubmissionDetails.isApproved, _taskSubmissionDetails.attestersIds);
         _sd.signedTasks[_taskHash] = true;
         if (_isAvsLogicSet) {
             _avsLogic.afterTaskSubmission(_taskInfo, _taskSubmissionDetails.isApproved, _taskSubmissionDetails.tpSignature, _taskSubmissionDetails.taSignature, _taskSubmissionDetails.attestersIds);
         }
     }
 
-    function _submitTaskBussinesLogic(AttestationCenterStorageData storage _sd, TaskInfo calldata _taskInfo, TaskDefinition memory _taskDefinition, bool _isApproved, uint256[] memory _attestersIds) private {
+    function _submitTaskBusinessLogic(AttestationCenterStorageData storage _sd, TaskInfo calldata _taskInfo, TaskDefinition memory _taskDefinition, bool _isApproved, uint256[] memory _attestersIds) private {
         uint32 _taskNumber = _sd.taskNumber;
         if (_isApproved) {
             emit TaskSubmitted(_taskInfo.taskPerformer, _taskNumber, _taskInfo.proofOfTask, _taskInfo.data,  _taskInfo.taskDefinitionId);

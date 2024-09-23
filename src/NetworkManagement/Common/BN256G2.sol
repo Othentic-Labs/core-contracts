@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // solium-disable security/no-assign-params
 
-pragma solidity >=0.8.20;
+pragma solidity >=0.8.25;
 
 /**
  * @title Elliptic curve operations on twist points on bn256 (G2)
