@@ -42,6 +42,8 @@ function __AttestationCenterPausable_init(address _avsGovernanceMultisigOwner, a
         
         _grantRole(PauserRolesLibrary.SET_AVS_LOGIC_FLOW, _avsGovernanceMultisigOwner);
         _grantRole(PauserRolesLibrary.SET_AVS_LOGIC_FLOW, _communityMultisig);
+        _grantRole(PauserRolesLibrary.SET_AVS_LOGIC_FLOW, _operationsMultisig);
+
         _grantRole(PauserRolesLibrary.CREATE_NEW_TASK_DEFINITION_FLOW, _avsGovernanceMultisigOwner);
         _grantRole(PauserRolesLibrary.CREATE_NEW_TASK_DEFINITION_FLOW, _operationsMultisig);
         _grantRole(PauserRolesLibrary.CREATE_NEW_TASK_DEFINITION_FLOW, _communityMultisig);

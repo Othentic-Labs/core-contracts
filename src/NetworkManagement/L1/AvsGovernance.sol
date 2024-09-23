@@ -48,17 +48,11 @@ contract AvsGovernance is IAvsGovernance, AvsGovernancePausable, ReentrancyGuard
     }
 
     // EXTERNAL FUNCTIONS
-    function initialize(
-        InitializationParams calldata _initializationParams
-    ) public virtual initializer {
-        _initialize(
-            _initializationParams
-        );
+    function initialize(InitializationParams calldata _initializationParams) public virtual initializer {
+        _initialize(_initializationParams);
     }
 
-    function _initialize(
-        InitializationParams calldata _initializationParams
-    ) internal onlyInitializing {
+    function _initialize(InitializationParams calldata _initializationParams) internal onlyInitializing {
         require(
                 _initializationParams.avsGovernanceMultisigOwner != address(0) &&
                 _initializationParams.operationsMultisig != address(0) &&
@@ -79,6 +73,7 @@ contract AvsGovernance is IAvsGovernance, AvsGovernancePausable, ReentrancyGuard
         // [REMOVE_OTHENTIC_ACCESS_CONTROL] - replace with grant roles by permission rather than entity 
         __OthenticAccessControl_init(_avsGovernanceMultisigOwner, _operationsMultisig, _communityMultisig);
         __AvsGovernancePausable_init(_avsGovernanceMultisigOwner, _operationsMultisig, _communityMultisig);
+        __ReentrancyGuard_init();
         AvsGovernanceStorageData storage _sd = _getStorage();
         _sd.othenticRegistry = _othenticRegistry;
         _sd.messageHandler = IMessageHandler(_messageHandler);

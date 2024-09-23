@@ -223,17 +223,17 @@ contract AttestationCenter is IAttestationCenter, AttestationCenterPausable, Ree
         _requestBatchPayment(_getStorage(), _from, _to);
     }
 
-    function setAvsLogic(IAvsLogic _avsLogic) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) {
+    function setAvsLogic(IAvsLogic _avsLogic) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) whenFlowNotPaused(PauserRolesLibrary.SET_AVS_LOGIC_FLOW) {
         _getStorage().avsLogic = _avsLogic;
         emit SetAvsLogic(address(_avsLogic));
     }
 
-    function setBeforePaymentsLogic(IBeforePaymentsLogic _beforePaymentsLogic) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) {
+    function setBeforePaymentsLogic(IBeforePaymentsLogic _beforePaymentsLogic) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) whenFlowNotPaused(PauserRolesLibrary.SET_AVS_LOGIC_FLOW) {
         _getStorage().beforePaymentsLogic = _beforePaymentsLogic;
         emit SetBeforePaymentsLogic(address(_beforePaymentsLogic));
     }
 
-    function setFeeCalculator(IFeeCalculator _feeCalculator) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) {
+    function setFeeCalculator(IFeeCalculator _feeCalculator) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) whenFlowNotPaused(PauserRolesLibrary.SET_AVS_LOGIC_FLOW) {
         _getStorage().feeCalculator = _feeCalculator;
         emit SetFeeCalculator(address(_feeCalculator)); 
     }
