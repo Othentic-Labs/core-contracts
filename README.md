@@ -2,7 +2,6 @@
   <a href="https://www.othentic.xyz/"><img src="image.png" alt="Othentic" width="200"></a> 
 </p>
 
-<h3 align="center">Othentic</h3>
 <h4 align="center">The Development Framework for Distributed Systems</h4>
 
 <p align="center">
@@ -23,6 +22,9 @@
 Othentic is a development framework designed for building robust distributed systems that integrate with Shared security protocols. The network's governance is implemented by AvsGovernance, which is the endpoint for network members' management and deposits. The network has the ability to control stake tokens, depending on the performance of tasks, and vote against bad acting.
 
 To reduce costs and improve efficiency, we deploy `AvsGovernance` on Layer 1 and `AttestationCenter` on Layer 2. Since they run on separate networks and can't interact directly on-chain, we use `LayerZero` to handle message passing between them.
+
+ <a href="https://docs.othentic.xyz/main/avs-framework/smart-contracts/avs-governance"><img src="contracts.png" alt="Othentic"></a>
+
 
 # Packages
 The core contracts fall into the following categories in the GitHub repository:
