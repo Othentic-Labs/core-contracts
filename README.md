@@ -23,7 +23,7 @@ Othentic is a development framework designed for building robust distributed sys
 
 To reduce costs and improve efficiency, we deploy `AvsGovernance` on Layer 1 and `AttestationCenter` on Layer 2. Since they run on separate networks and can't interact directly on-chain, we use `LayerZero` to handle message passing between them.
 
- <a href="https://docs.othentic.xyz/main/avs-framework/smart-contracts/avs-governance"><img src="contracts.png" alt="Othentic"></a>
+ <a href="https://docs.othentic.xyz/main/avs-framework/smart-contracts/avs-governance" align="center"><img src="contracts.png" alt="Othentic"  width="550" height="400"  align="center"></a>
 
 
 # Packages
