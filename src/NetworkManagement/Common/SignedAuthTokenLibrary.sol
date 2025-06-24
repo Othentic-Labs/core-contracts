@@ -12,18 +12,23 @@ $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  $$$$$$/     $$$$/  $$/   $$/  $$$$$$$/ $$/   $$/    $$$$/  $$/  $$$$$$$/
 */
 
-import { ECDSA } from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-import { MessageHashUtils } from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 library SignedAuthTokenLibrary {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    function verifyAuthTokenForAddress(bytes memory _authToken, address _avsGovernanceAddress, address _address, address _signer) internal pure returns (bool) {
+    function verifyAuthTokenForAddress(
+        bytes memory _authToken,
+        address _avsGovernanceAddress,
+        address _address,
+        address _signer
+    ) internal pure returns (bool) {
         return getAddress(_avsGovernanceAddress, _address, _authToken) == _signer;
     }
 
-    function _hash(address _avsGovernanceAddress,address _address) internal pure returns (bytes32) {
+    function _hash(address _avsGovernanceAddress, address _address) internal pure returns (bytes32) {
         return keccak256(abi.encode(_avsGovernanceAddress, _address));
     }
 
@@ -31,7 +36,11 @@ library SignedAuthTokenLibrary {
         return hash.toEthSignedMessageHash().recover(token);
     }
 
-    function getAddress(address _avsGovernanceAddress, address _address, bytes memory _authToken) internal pure returns (address) {
+    function getAddress(address _avsGovernanceAddress, address _address, bytes memory _authToken)
+        internal
+        pure
+        returns (address)
+    {
         return _recover(_hash(_avsGovernanceAddress, _address), _authToken);
     }
 }

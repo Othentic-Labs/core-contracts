@@ -4,7 +4,7 @@ pragma solidity ^0.8.25;
 
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import { IOAppCore, ILayerZeroEndpointV2 } from "@othentic/lz/v2/oapp/interfaces/IOAppCore.sol";
+import {IOAppCore, ILayerZeroEndpointV2} from "@othentic/lz/v2/oapp/interfaces/IOAppCore.sol";
 import "@othentic/NetworkManagement/Common/RolesLibrary.sol";
 import "@othentic/lz/v2/oapp/MessageHandlerStorage.sol";
 
@@ -13,7 +13,6 @@ import "@othentic/lz/v2/oapp/MessageHandlerStorage.sol";
  * @dev Abstract contract implementing the IOAppCore interface with basic OApp configurations.
  */
 abstract contract OAppCore is Initializable, AccessControlUpgradeable, IOAppCore {
-
     /**
      * @dev Constructor to initialize the OAppCore with the provided endpoint and delegate.
      * @param _endpoint The address of the LOCAL Layer Zero endpoint.
@@ -21,8 +20,11 @@ abstract contract OAppCore is Initializable, AccessControlUpgradeable, IOAppCore
      *
      * @dev The delegate typically should be set as the owner of the contract.
      */
-    function _initialize(MessageHandlerStorageData storage _sd, address _endpoint, address _delegate) virtual internal onlyInitializing {
-        _grantRole(RolesLibrary.AVS_FACTORY_ROLE, msg.sender);
+    function _initialize(MessageHandlerStorageData storage _sd, address _endpoint, address _delegate)
+        internal
+        virtual
+        onlyInitializing
+    {
         _sd.endpoint = _endpoint;
 
         if (_delegate == address(0)) revert InvalidDelegate();
@@ -30,11 +32,11 @@ abstract contract OAppCore is Initializable, AccessControlUpgradeable, IOAppCore
         __AccessControl_init();
     }
 
-    function endpoint() external view returns (ILayerZeroEndpointV2 iEndpoint){
+    function endpoint() external view returns (ILayerZeroEndpointV2 iEndpoint) {
         return _getEndpoint();
     }
 
-    function peers(uint32 _eid) external view returns (bytes32 peer){
+    function peers(uint32 _eid) external view returns (bytes32 peer) {
         return _getPeerOrRevert(_eid);
     }
 
@@ -60,7 +62,7 @@ abstract contract OAppCore is Initializable, AccessControlUpgradeable, IOAppCore
      * @dev Only the owner/admin of the OApp can call this function.
      * @dev Provides the ability for a delegate to set configs, on behalf of the OApp, directly on the Endpoint contract.
      */
-    function setDelegate(address _delegate) external onlyRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG) {
+    function setDelegate(address _delegate) external onlyRole(RolesLibrary.LZ_DELEGATE_ROLE) {
         _getEndpoint().setDelegate(_delegate);
     }
 

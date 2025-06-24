@@ -24,6 +24,25 @@ library SafeERC20NoRevert {
     }
 
     /**
+     * @notice Modified to be non-reverting
+     * @dev Transfer `value` amount of `token` from the caller `from` to `to`. If `token` returns no value,
+     * non-reverting calls are assumed to be successful.
+     */
+    function safeTransferFromNoRevert(IERC20 token, address from, address to, uint256 value) internal returns (bool) {
+        return _callOptionalReturnBool(token, abi.encodeCall(token.transferFrom, (from, to, value)));
+    }
+
+    /**
+     * @notice Modified to be non-reverting
+     * @dev Increase the calling contract's allowance toward `spender` by `value`. If `token` returns no value,
+     * non-reverting calls are assumed to be successful.
+     */
+    function safeIncreaseAllowanceNoRevert(IERC20 token, address spender, uint256 value) internal returns (bool) {
+        uint256 oldAllowance = token.allowance(address(this), spender);
+        return _callOptionalReturnBool(token, abi.encodeCall(token.approve, (spender, oldAllowance + value)));
+    }
+
+    /**
      * @notice Copied from OpenZeppelin's SafeERC20
      * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
      * on the return value: the return value is optional (but if data is returned, it must not be false).
@@ -38,7 +57,8 @@ library SafeERC20NoRevert {
         // and not revert is the subcall reverts.
 
         (bool success, bytes memory returndata) = address(token).call(data);
-        return success && (returndata.length == 0 || _isReturnDataBooleanTrue(returndata)) && address(token).code.length > 0;
+        return success && (returndata.length == 0 || _isReturnDataBooleanTrue(returndata))
+            && address(token).code.length > 0;
     }
 
     function _isReturnDataBooleanTrue(bytes memory returndata) private pure returns (bool) {

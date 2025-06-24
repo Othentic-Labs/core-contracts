@@ -10,20 +10,24 @@ $$ \__$$ |  $$ |/  |$$ |  $$ |$$$$$$$$/ $$ |  $$ |  $$ |/  |$$ |$$ \_____
 $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  $$$$$$/     $$$$/  $$/   $$/  $$$$$$$/ $$/   $$/    $$$$/  $$/  $$$$$$$/
 */
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-struct VaultStorageData {
-    address ownerVault;
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IAvsTreasury} from "@othentic/NetworkManagement/Common/interfaces/IAvsTreasury.sol";
+
+struct AvsTreasuryStorageData {
+    address avsTreasuryOwner;
     IERC20 token;
     address otTreasury;
     uint256 protocolFee;
     uint256 balance;
+    uint32 tokenReplacementModificationDelay;
+    IAvsTreasury.TokenReplacementDetails tokenReplacementDetails;
 }
 
-library VaultStorage {
-    uint256 constant private STORAGE_POSITION = uint256(keccak256("storage.vault")) - 1;
+library AvsTreasuryStorage {
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.vault")) - 1;
 
-    function load() internal pure returns (VaultStorageData storage sd) {
+    function load() internal pure returns (AvsTreasuryStorageData storage sd) {
         uint256 position = STORAGE_POSITION;
         assembly {
             sd.slot := position

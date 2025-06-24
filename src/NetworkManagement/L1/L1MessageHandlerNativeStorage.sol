@@ -10,10 +10,20 @@ $$ \__$$ |  $$ |/  |$$ |  $$ |$$$$$$$$/ $$ |  $$ |  $$ |/  |$$ |$$ \_____
 $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  $$$$$$/     $$$$/  $$/   $$/  $$$$$$$/ $$/   $$/    $$$$/  $$/  $$$$$$$/
 */
-/**
- * @author Othentic Labs LTD.
- * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
- */
-interface IVaultDepositCallback {
-    function vaultDepositCallback(uint256 amount, bytes calldata data) external returns (bool);
+
+import "@othentic/NetworkManagement/L1/interfaces/IAvsGovernance.sol";
+
+struct L1MessageHandlerNativeStorageData {
+    IAvsGovernance avsGovernance;
+}
+
+library L1MessageHandlerNativeStorage {
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.l1.message.handler.native")) - 1;
+
+    function load() internal pure returns (L1MessageHandlerNativeStorageData storage sd) {
+        uint256 position = STORAGE_POSITION;
+        assembly {
+            sd.slot := position
+        }
+    }
 }

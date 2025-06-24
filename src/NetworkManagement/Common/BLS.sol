@@ -29,10 +29,10 @@ pragma solidity >=0.8.19;
 import {ModexpInverse, ModexpSqrt} from "./ModExp.sol";
 
 /**
-    @title  Boneh–Lynn–Shacham (BLS) signature scheme on Barreto-Naehrig 254 bit curve (BN-254)
-    @notice BLS signature aggregation reduces the size of signature data to store on-chain
-    @dev points on G1 are used for signatures and messages, and on G2 for public keys
-    @dev Adapted to be an internal library instead of an abstract contract
+ * @title  Boneh–Lynn–Shacham (BLS) signature scheme on Barreto-Naehrig 254 bit curve (BN-254)
+ *     @notice BLS signature aggregation reduces the size of signature data to store on-chain
+ *     @dev points on G1 are used for signatures and messages, and on G2 for public keys
+ *     @dev Adapted to be an internal library instead of an abstract contract
  */
 library BLS {
     error InvalidPublicKeyCount();
@@ -42,36 +42,36 @@ library BLS {
     error BadFTMappingImplementation();
 
     // Field order
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant N = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     // Negated generator of G2
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant N_G2_X1 = 11559732032986387107991004021392285783925812861821192530917403151452391805634;
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant N_G2_X0 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant N_G2_Y1 = 17805874995975841540914202342111839520379459829704422454583296818431106115052;
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant N_G2_Y0 = 13392588948715843804641432497768002650278120570034223513918757245338268106653;
 
     // sqrt(-3)
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant Z0 = 0x0000000000000000b3c4d79d41a91759a9e4c7e359b6b89eaec68e62effffffd;
     // (sqrt(-3) - 1)  / 2
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant Z1 = 0x000000000000000059e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe;
 
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant T24 = 0x1000000000000000000000000000000000000000000000000;
-    // prettier-ignore
+    // forgefmt: disable-next-line
     uint256 private constant MASK24 = 0xffffffffffffffffffffffffffffffffffffffffffffffff;
 
-    function verifySingle(
-        uint256[2] memory signature,
-        uint256[4] memory pubkey,
-        uint256[2] memory message
-    ) internal view returns (bool, bool) {
+    function verifySingle(uint256[2] memory signature, uint256[4] memory pubkey, uint256[2] memory message)
+        internal
+        view
+        returns (bool, bool)
+    {
         uint256[12] memory input = [
             signature[0],
             signature[1],
@@ -184,9 +184,7 @@ library BLS {
         assembly {
             success := staticcall(sub(gas(), 2000), 6, bnAddInput, 128, p0, 64)
             switch success
-            case 0 {
-                invalid()
-            }
+            case 0 { invalid() }
         }
         if (!success) revert BNAddCallFailed();
         return p0;
@@ -362,13 +360,7 @@ library BLS {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let p := add(msg0, 96)
-            for {
-                let z := 0
-            } lt(z, t0) {
-                z := add(z, 32)
-            } {
-                mstore(add(p, z), mload(add(message, add(z, 32))))
-            }
+            for { let z := 0 } lt(z, t0) { z := add(z, 32) } { mstore(add(p, z), mload(add(message, add(z, 32)))) }
             p := add(p, t0)
 
             mstore8(p, 0)

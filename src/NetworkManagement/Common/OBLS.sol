@@ -16,9 +16,9 @@ import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.s
 import "@othentic/NetworkManagement/Common/interfaces/IOBLS.sol";
 import "@othentic/NetworkManagement/Common/OBLSStorage.sol";
 import "@othentic/NetworkManagement/Common/RolesLibrary.sol";
-import { BLS } from "@othentic/NetworkManagement/Common/BLS.sol";
-import { BN256G2 } from "@othentic/NetworkManagement/Common/BN256G2.sol";
-import { BLSAuthLibrary } from "@othentic/NetworkManagement/Common/BLSAuthLibrary.sol";
+import {BLS} from "@othentic/NetworkManagement/Common/BLS.sol";
+import {BN256G2} from "@othentic/NetworkManagement/Common/BN256G2.sol";
+import {BLSAuthLibrary} from "@othentic/NetworkManagement/Common/BLSAuthLibrary.sol";
 
 /**
  * @author Othentic Labs LTD.
@@ -40,7 +40,7 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
 
     function getOblsManager() external view returns (address) {
         return _getStorage().oblsManager;
-    }    
+    }
 
     function totalVotingPower() external view returns (uint256) {
         return _getStorage().totalVotingPower;
@@ -51,11 +51,21 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
     }
 
     function totalVotingPowerPerTaskDefinition(uint256 _id) external view returns (uint256) {
-        return _getStorage().totalVotingPowerPerTaskDefinition[_id];
+        OBLSStorageData storage _sd = _getStorage();
+        uint256 _totalVotingPowerPerTaskDefinition = _sd.totalVotingPowerPerTaskDefinition[_id];
+        if (_totalVotingPowerPerTaskDefinition == 0) _totalVotingPowerPerTaskDefinition = _sd.totalVotingPower;
+        return _totalVotingPowerPerTaskDefinition;
     }
 
     function isActive(uint256 _index) external view returns (bool) {
         return _getStorage().operators[_index].isActive;
+    }
+
+    function getOperatorBLSPubKey(uint256 _index) external view returns (uint256[4] memory) {
+        IOBLS.BLSOperator memory _operator = _getStorage().operators[_index];
+        if (_operator.blsKey[0] == 0) revert InvalidOperatorIndex();
+        if (!_operator.isActive) revert InactiveOperator(_index);
+        return _operator.blsKey;
     }
 
     function verifySignature(
@@ -66,7 +76,8 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         uint256 _minimumVotingPowerPerTaskDefinition
     ) external view {
         if (_requiredVotingPower == 0) revert InvalidRequiredVotingPower();
-        (uint256[4] memory _aggPubkey, uint256 _votingPowerSigned) = _calculateAggregatePK(_indexes, _minimumVotingPowerPerTaskDefinition);
+        (uint256[4] memory _aggPubkey, uint256 _votingPowerSigned) =
+            _calculateAggregatePK(_indexes, _minimumVotingPowerPerTaskDefinition);
         if (_votingPowerSigned < _requiredVotingPower) revert InsufficientVotingPower();
         (bool _callSuccess, bool _result) = BLS.verifySingle(_signature, _aggPubkey, _message);
         if (!_callSuccess || !_result) revert InvalidOBLSSignature();
@@ -81,6 +92,16 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         if (!_signature.isValidSignature(_operator, _contract, _blsKey)) revert InvalidAuthSignature();
     }
 
+    function validateOperatorSignature(
+        uint256 _operatorId,
+        uint256[2] calldata _message,
+        uint256[2] calldata _signature
+    ) external view {
+        BLSOperator memory _operator = _getStorage().operators[_operatorId];
+        (bool _callSuccess, bool _result) = BLS.verifySingle(_signature, _operator.blsKey, _message);
+        if (!_callSuccess || !_result) revert InvalidOBLSSignature();
+    }
+
     function hashToPoint(bytes32 domain, bytes calldata message) external view returns (uint256[2] memory) {
         return BLS.hashToPoint(domain, message);
     }
@@ -91,38 +112,62 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         _resetOperatorVotingPower(_index, _sd);
     }
 
-    function registerOperator(uint256 _index, uint256 _votingPower, uint256[4] memory _blsKey) external onlyRole(RolesLibrary.OBLS_MANAGER) {
+    function registerOperator(uint256 _index, uint256 _votingPower, uint256[4] memory _blsKey)
+        external
+        onlyRole(RolesLibrary.OBLS_MANAGER)
+    {
         OBLSStorageData storage _sd = _getStorage();
         _increaseOperatorVotingPower(_index, _votingPower, _sd);
         _modifyOperatorBlsKey(_index, _blsKey, _sd);
         _modifyOperatorActiveStatus(_index, true, _sd);
     }
 
-    function modifyOperatorBlsKey(uint256 _index, uint256[4] memory _blsKey) external onlyRole(RolesLibrary.OBLS_MANAGER) {
+    function modifyOperatorBlsKey(uint256 _index, uint256[4] memory _blsKey)
+        external
+        onlyRole(RolesLibrary.OBLS_MANAGER)
+    {
         _modifyOperatorBlsKey(_index, _blsKey, _getStorage());
     }
 
-    function increaseOperatorVotingPower(uint256 _index, uint256 _votingPower) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function increaseOperatorVotingPower(uint256 _index, uint256 _votingPower)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _increaseOperatorVotingPower(_index, _votingPower, _getStorage());
     }
 
-    function increaseBatchOperatorVotingPower(OperatorVotingPower[] memory _operatorsVotingPower) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function increaseBatchOperatorVotingPower(OperatorVotingPower[] memory _operatorsVotingPower)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _increaseBatchOperatorVotingPower(_operatorsVotingPower);
     }
 
-    function increaseOperatorVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _votingPower) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function increaseOperatorVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _votingPower)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _increaseOperatorVotingPowerPerTaskDefinition(_taskDefinitionId, _votingPower, _getStorage());
     }
 
-    function decreaseOperatorVotingPower(uint256 _index, uint256 _votingPower) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function decreaseOperatorVotingPower(uint256 _index, uint256 _votingPower)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _decreaseOperatorVotingPower(_index, _votingPower, _getStorage());
     }
 
-    function decreaseBatchOperatorVotingPower(OperatorVotingPower[] memory _operatorsVotingPower) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function decreaseBatchOperatorVotingPower(OperatorVotingPower[] memory _operatorsVotingPower)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _decreaseBatchOperatorVotingPower(_operatorsVotingPower);
     }
 
-    function decreaseOperatorVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _votingPower) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function decreaseOperatorVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _votingPower)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _decreaseOperatorVotingPowerPerTaskDefinition(_taskDefinitionId, _votingPower, _getStorage());
     }
 
@@ -133,6 +178,12 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         emit SetOBLSManager(_oblsManager);
     }
 
+    function setVotingPowerSyncer(address _votingPowerSyncer) external onlyRole(RolesLibrary.AVS_FACTORY_ROLE) {
+        _grantRole(RolesLibrary.VOTING_POWER_SYNCER, _votingPowerSyncer);
+        emit SharesSyncerModified(_votingPowerSyncer);
+    }
+
+    // @obsolete
     function setOblsSharesSyncer(address _oblsSharesSyncer) external onlyRole(RolesLibrary.OBLS_MANAGER) {
         address _currentSharesSyncer = _getStorage().oblsSharesSyncer;
         _revokeRole(RolesLibrary.VOTING_POWER_SYNCER, _currentSharesSyncer);
@@ -141,43 +192,72 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         emit SharesSyncerModified(_oblsSharesSyncer);
     }
 
-    function setTotalVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _numOfTotalOperators, uint256 _minimumVotingPower) external onlyRole(RolesLibrary.OBLS_MANAGER) {
+    function setTotalVotingPowerPerTaskDefinition(
+        uint16 _taskDefinitionId,
+        uint256 _numOfTotalOperators,
+        uint256 _minimumVotingPower
+    ) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
         OBLSStorageData storage _sd = _getStorage();
         uint256 _totalVotingPowerPerTaskDefinition;
-        for (uint i = 1; i <= _numOfTotalOperators;) {
+        for (uint256 i = 1; i <= _numOfTotalOperators;) {
             BLSOperator memory _operator = _sd.operators[i];
-            if(_operator.isActive && _operator.votingPower >= _minimumVotingPower) _totalVotingPowerPerTaskDefinition += _operator.votingPower;
-            unchecked {++i;}
+            if (_operator.isActive && _operator.votingPower >= _minimumVotingPower) {
+                _totalVotingPowerPerTaskDefinition += _operator.votingPower;
+            }
+            unchecked {
+                ++i;
+            }
         }
         _sd.totalVotingPowerPerTaskDefinition[_taskDefinitionId] = _totalVotingPowerPerTaskDefinition;
+        emit SetTotalVotingPowerPerTaskDefinition(_taskDefinitionId, _numOfTotalOperators, _minimumVotingPower);
     }
 
-    function setTotalVotingPowerPerRestrictedTaskDefinition(uint16 _taskDefinitionId, uint256 _minimumVotingPower, uint256[] calldata _restrictedOperatorIndexes) external onlyRole(RolesLibrary.OBLS_MANAGER) {
+    function setTotalVotingPowerPerRestrictedTaskDefinition(
+        uint16 _taskDefinitionId,
+        uint256 _minimumVotingPower,
+        uint256[] calldata _restrictedAttesterIds
+    ) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
         OBLSStorageData storage _sd = _getStorage();
         uint256 _totalVotingPowerPerTaskDefinition;
-        for (uint i = 0; i < _restrictedOperatorIndexes.length;) {
-            BLSOperator memory _operator = _sd.operators[_restrictedOperatorIndexes[i]];
-            if(_operator.isActive && _operator.votingPower >= _minimumVotingPower) _totalVotingPowerPerTaskDefinition += _operator.votingPower;
-            unchecked {++i;}
+        for (uint256 i = 0; i < _restrictedAttesterIds.length;) {
+            BLSOperator memory _operator = _sd.operators[_restrictedAttesterIds[i]];
+            if (_operator.isActive && _operator.votingPower >= _minimumVotingPower) {
+                _totalVotingPowerPerTaskDefinition += _operator.votingPower;
+            }
+            unchecked {
+                ++i;
+            }
         }
         _sd.totalVotingPowerPerTaskDefinition[_taskDefinitionId] = _totalVotingPowerPerTaskDefinition;
-    }    
+        emit SetTotalVotingPowerPerRestrictedTaskDefinition(
+            _taskDefinitionId, _minimumVotingPower, _restrictedAttesterIds
+        );
+    }
 
-    function modifyOperatorActiveStatus(uint256 _index, bool _isActive) external onlyRole(RolesLibrary.VOTING_POWER_SYNCER) {
+    function modifyOperatorActiveStatus(uint256 _index, bool _isActive)
+        external
+        onlyRole(RolesLibrary.VOTING_POWER_SYNCER)
+    {
         _modifyOperatorActiveStatus(_index, _isActive, _getStorage());
     }
 
     // PRIVATE FUNCTIONS
-    function _calculateAggregatePK(uint[] memory _indexes, uint256 _minimumVotingPowerPerTaskDefinition) internal view returns (uint[4] memory _aggPubkey, uint256 _votingPowerSigned) {
-        uint _opLength = _indexes.length;
-        uint[4][] memory _blsKeys = new uint[4][](_opLength);
-        uint _lastSeenOperatorIndex;
+    function _calculateAggregatePK(uint256[] memory _indexes, uint256 _minimumVotingPowerPerTaskDefinition)
+        internal
+        view
+        returns (uint256[4] memory _aggPubkey, uint256 _votingPowerSigned)
+    {
+        uint256 _opLength = _indexes.length;
+        uint256[4][] memory _blsKeys = new uint256[4][](_opLength);
+        uint256 _lastSeenOperatorIndex;
         OBLSStorageData storage _oblsStorageData = _getStorage();
         for (uint256 i = 0; i < _opLength; i++) {
-            uint _index = _indexes[i];
+            uint256 _index = _indexes[i];
             if (i != 0 && _lastSeenOperatorIndex >= _index) revert InvalidOperatorIndexes();
             BLSOperator memory _details = _oblsStorageData.operators[_index];
-            if(_details.votingPower < _minimumVotingPowerPerTaskDefinition) revert OperatorDoesNotHaveMinimumVotingPower(_index);
+            if (_details.votingPower < _minimumVotingPowerPerTaskDefinition) {
+                revert OperatorDoesNotHaveMinimumVotingPower(_index);
+            }
             _votingPowerSigned += _details.votingPower;
             if (!_details.isActive) revert InactiveOperator(_index);
             _blsKeys[i] = _details.blsKey;
@@ -186,18 +266,35 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         _aggPubkey = _calculateAggregatePKByBlsKeys(_blsKeys);
     }
 
-    function _calculateAggregatePKByBlsKeys(uint[4][] memory _blsKeys) internal view returns (uint[4] memory _aggPubkey) {
+    function _calculateAggregatePKByBlsKeys(uint256[4][] memory _blsKeys)
+        internal
+        view
+        returns (uint256[4] memory _aggPubkey)
+    {
+        uint256[6] memory _jacobianSum;
         for (uint256 i = 0; i < _blsKeys.length; i++) {
-            uint[4] memory _blsKey = _blsKeys[i];
-            if (i == 0) {
-                _aggPubkey = _blsKey;
-            } else {
-                _aggPubkey = _buildNextAggPubkey(_aggPubkey, _blsKey);
-            }
+            uint256[4] memory _blsKey = _blsKeys[i];
+            _jacobianSum = BN256G2.ecTwistAddJacobian(
+                _jacobianSum[0],
+                _jacobianSum[1],
+                _jacobianSum[2],
+                _jacobianSum[3],
+                _jacobianSum[4],
+                _jacobianSum[5],
+                _blsKey[0],
+                _blsKey[1],
+                _blsKey[2],
+                _blsKey[3],
+                1,
+                0 // NOTE: key cannot be O, therefore z = 1 is a valid conversion to jacobian
+            );
         }
+        (_aggPubkey[0], _aggPubkey[1], _aggPubkey[2], _aggPubkey[3]) = BN256G2._fromJacobian(
+            _jacobianSum[0], _jacobianSum[1], _jacobianSum[2], _jacobianSum[3], _jacobianSum[4], _jacobianSum[5]
+        );
     }
 
-    function _resetOperatorVotingPower(uint index, OBLSStorageData storage _sd) internal {
+    function _resetOperatorVotingPower(uint256 index, OBLSStorageData storage _sd) internal {
         _sd.totalVotingPower -= _sd.operators[index].votingPower;
         delete _sd.operators[index].votingPower;
     }
@@ -212,12 +309,17 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
         uint256 _totalVotingPower = _sd.totalVotingPower;
         for (uint256 i = 0; i < _operatorsVotingPower.length; i++) {
             _sd.operators[_operatorsVotingPower[i].operatorId].votingPower += _operatorsVotingPower[i].votingPower;
-            _totalVotingPower += _operatorsVotingPower[i].votingPower;       
+            _totalVotingPower += _operatorsVotingPower[i].votingPower;
         }
         _sd.totalVotingPower = _totalVotingPower;
+        emit IncreaseBatchOperatorVotingPower(_operatorsVotingPower);
     }
 
-    function _increaseOperatorVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _votingPower, OBLSStorageData storage _sd) internal {
+    function _increaseOperatorVotingPowerPerTaskDefinition(
+        uint16 _taskDefinitionId,
+        uint256 _votingPower,
+        OBLSStorageData storage _sd
+    ) internal {
         _sd.totalVotingPowerPerTaskDefinition[_taskDefinitionId] += _votingPower;
     }
 
@@ -234,9 +336,14 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
             _totalVotingPower -= _operatorsVotingPower[i].votingPower;
         }
         _sd.totalVotingPower = _totalVotingPower;
+        emit DecreaseBatchOperatorVotingPower(_operatorsVotingPower);
     }
 
-    function _decreaseOperatorVotingPowerPerTaskDefinition(uint16 _taskDefinitionId, uint256 _votingPower, OBLSStorageData storage _sd) internal {
+    function _decreaseOperatorVotingPowerPerTaskDefinition(
+        uint16 _taskDefinitionId,
+        uint256 _votingPower,
+        OBLSStorageData storage _sd
+    ) internal {
         _sd.totalVotingPowerPerTaskDefinition[_taskDefinitionId] -= _votingPower;
     }
 
@@ -246,26 +353,6 @@ contract OBLS is Initializable, AccessControlUpgradeable, IOBLS {
 
     function _modifyOperatorActiveStatus(uint256 _index, bool _isActive, OBLSStorageData storage _sd) internal {
         _sd.operators[_index].isActive = _isActive;
-    }
-
-    function _buildNextAggPubkey(uint256[4] memory _prevAggPubkey, uint256[4] memory _blsKey) internal view returns (uint256[4] memory nextAggPubkey) {
-        uint256[4] memory _nextAggPubkey;
-        (
-            _nextAggPubkey[0],
-            _nextAggPubkey[1],
-            _nextAggPubkey[2],
-            _nextAggPubkey[3]
-        ) = BN256G2.ecTwistAdd(
-            _prevAggPubkey[0],
-            _prevAggPubkey[1],
-            _prevAggPubkey[2],
-            _prevAggPubkey[3],
-            _blsKey[0],
-            _blsKey[1],
-            _blsKey[2],
-            _blsKey[3]
-        );
-        return _nextAggPubkey;
     }
 
     function _getStorage() internal pure returns (OBLSStorageData storage) {
