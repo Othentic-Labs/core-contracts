@@ -24,7 +24,7 @@
 To reduce costs and improve efficiency, we deploy `AvsGovernance` on Layer 1 and `AttestationCenter` on Layer 2. Since they run on separate networks and can't interact directly on-chain, we use `LayerZero` to handle message passing between them.
 <div align="center">
   <a href="https://docs.othentic.xyz/main/reference/contracts">
-    <img src="contracts.png" alt="Othentic" width="550" height="400">
+    <img src="https://raw.githubusercontent.com/Othentic-Labs/core-contracts/ee8928dc618e47da5b72618e181f116c13a80742/contracts.png" alt="Othentic" width="550" height="400">
   </a>
 </div>
 
