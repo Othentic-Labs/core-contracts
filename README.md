@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://www.othentic.xyz/"><img src="image.png" alt="Othentic" width="200"></a> 
+  <a href="https://www.othentic.xyz/"><img src="https://cdn.prod.website-files.com/65c8926a6b9399bd75cd1c02/661ee2fa17a584a2ea884221_Favicon-White%20(1).png" alt="Othentic" width="200"></a> 
 </p>
 
 <h4 align="center">The Development Framework for Distributed Systems</h4>
@@ -23,7 +23,7 @@
 
 To reduce costs and improve efficiency, we deploy `AvsGovernance` on Layer 1 and `AttestationCenter` on Layer 2. Since they run on separate networks and can't interact directly on-chain, we use `LayerZero` to handle message passing between them.
 <div align="center">
-  <a href="https://docs.othentic.xyz/main/avs-framework/smart-contracts/avs-governance">
+  <a href="https://docs.othentic.xyz/main/reference/contracts">
     <img src="contracts.png" alt="Othentic" width="550" height="400">
   </a>
 </div>
