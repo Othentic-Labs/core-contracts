@@ -15,8 +15,7 @@ $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  * @author Othentic Labs LTD.
  */
 interface IMessageHandler {
+    event SetAvsGovernanceMultisig(address newAvsGovernanceMultisig);
 
     function sendMessage(bytes memory _payload) external;
-    function deposit() external payable;
-    function nilify(uint64 _nonce) external;
 }

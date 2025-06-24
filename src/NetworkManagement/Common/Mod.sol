@@ -24,9 +24,7 @@ library Mod {
             success := staticcall(sub(gas(), 2000), 5, input, 0xc0, output, 0x20)
             // Use "invalid" to make gas estimation work
             switch success
-            case 0 {
-                invalid()
-            }
+            case 0 { invalid() }
         }
         require(success, "Mod.modExp: 0x5 call failed");
         return output[0];

@@ -19,15 +19,27 @@ abstract contract NonblockingLzApp is LzApp {
     event RetryMessageSuccess(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _payloadHash);
 
     // overriding the virtual function in LzReceiver
-    function _blockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) internal virtual override {
-        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.nonblockingLzReceive.selector, _payload));
+    function _blockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload)
+        internal
+        virtual
+        override
+    {
+        (bool success, bytes memory reason) = address(this).excessivelySafeCall(
+            gasleft(), 150, abi.encodeWithSelector(this.nonblockingLzReceive.selector, _payload)
+        );
         // try-catch all errors/exceptions
         if (!success) {
             _storeFailedMessage(_srcChainId, _srcAddress, _nonce, _payload, reason);
         }
     }
 
-    function _storeFailedMessage(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload, bytes memory _reason) internal virtual {
+    function _storeFailedMessage(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64 _nonce,
+        bytes memory _payload,
+        bytes memory _reason
+    ) internal virtual {
         failedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(_payload);
         emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, _reason);
     }
@@ -41,7 +53,11 @@ abstract contract NonblockingLzApp is LzApp {
     //@notice override this function
     function _nonblockingLzReceive(bytes calldata _payload) internal virtual;
 
-    function retryMessage(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) public payable virtual {
+    function retryMessage(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload)
+        public
+        payable
+        virtual
+    {
         // assert there is message to retry
         bytes32 payloadHash = failedMessages[_srcChainId][_srcAddress][_nonce];
         require(payloadHash != bytes32(0), "NonblockingLzApp: no stored message");

@@ -10,6 +10,7 @@ $$ \__$$ |  $$ |/  |$$ |  $$ |$$$$$$$$/ $$ |  $$ |  $$ |/  |$$ |$$ \_____
 $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  $$$$$$/     $$$$/  $$/   $$/  $$$$$$$/ $$/   $$/    $$$$/  $$/  $$$$$$$/
 */
+
 import "@othentic/NetworkManagement/L2/interfaces/IAttestationCenter.sol";
 
 struct L2MessageHandlerStorageData {
@@ -17,7 +18,7 @@ struct L2MessageHandlerStorageData {
 }
 
 library L2MessageHandlerStorage {
-    uint256 constant private STORAGE_POSITION = uint256(keccak256("storage.l2.message.handler")) - 1;
+    uint256 private constant STORAGE_POSITION = uint256(keccak256("storage.l2.message.handler")) - 1;
 
     function load() internal pure returns (L2MessageHandlerStorageData storage sd) {
         uint256 position = STORAGE_POSITION;

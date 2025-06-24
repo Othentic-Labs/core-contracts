@@ -7,3 +7,6 @@ forge-std/=lib/forge-std/src/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable
 @eigenlayer/=lib/eigenlayer-contracts/src/
 @eigenlayer-middleware/=lib/eigenlayer-middleware/src/
+@symbiotic/=lib/core/
+@ironblocks/firewall-consumer/=lib/onchain-firewall/packages/firewall-consumer/
+onchain-firewall/=lib/onchain-firewall/

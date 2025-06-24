@@ -24,8 +24,8 @@ error NotActiveOperator();
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
+
 library AvsGovernancesLibrary {
-    
     function registerAvs(AvsGovernances storage self, address _avsGovernance) internal returns (uint256 _id) {
         if (_avsGovernance == address(0)) revert InvalidId();
         _id = ++self.counter;
@@ -33,7 +33,11 @@ library AvsGovernancesLibrary {
         self.ids[_avsGovernance] = _id;
     }
 
-    function getAvsGovernance(AvsGovernances storage self, uint256 _id) internal view returns (address _avsGovernance) {
+    function getAvsGovernance(AvsGovernances storage self, uint256 _id)
+        internal
+        view
+        returns (address _avsGovernance)
+    {
         _avsGovernance = self.avsGovernances[_id];
         if (_avsGovernance == address(0)) revert InvalidId();
     }

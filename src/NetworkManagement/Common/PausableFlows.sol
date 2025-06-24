@@ -14,7 +14,6 @@ $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
 /**
  * @author Othentic Labs LTD.
  */
-
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import "@othentic/NetworkManagement/Common/PauserRolesLibrary.sol";
 import "@othentic/NetworkManagement/Common/RolesLibrary.sol";
@@ -22,9 +21,8 @@ import "@othentic/NetworkManagement/Common/interfaces/IPausableFlows.sol";
 import "@othentic/NetworkManagement/Common/PausableFlowsStorage.sol";
 
 abstract contract PausableFlows is IPausableFlows, AccessControlUpgradeable {
-    
     // MODIFIERS
-    
+
     modifier whenFlowNotPaused(bytes4 _pausableFlow) {
         _revertIfFlowPaused(_pausableFlow);
         _;
@@ -35,12 +33,15 @@ abstract contract PausableFlows is IPausableFlows, AccessControlUpgradeable {
         _;
     }
 
-    function __OthenticAccessControl_init(address _avsGovernanceMultisigOwner, address _operationsMultisig, address _communityMultisig) internal onlyInitializing {
+    function __OthenticAccessControl_init(
+        address _avsGovernanceMultisigOwner,
+        address _operationsMultisig,
+        address _communityMultisig
+    ) internal onlyInitializing {
         _grantRole(RolesLibrary.OPERATIONS_MULTISIG, _operationsMultisig);
         _grantRole(RolesLibrary.AVS_GOVERNANCE_MULTISIG, _avsGovernanceMultisigOwner);
         _grantRole(RolesLibrary.COMMUNITY_MULTISIG, _communityMultisig);
     }
-
 
     // EXTERNAL FUNCTIONS
 
@@ -48,7 +49,7 @@ abstract contract PausableFlows is IPausableFlows, AccessControlUpgradeable {
         return _getPausableFlowsStorage().flowsPauseStates[_pausableFlow];
     }
 
-    function pause(bytes4 _pausableFlow) external whenFlowNotPaused(_pausableFlow) onlyRole(_pausableFlow){
+    function pause(bytes4 _pausableFlow) external whenFlowNotPaused(_pausableFlow) onlyRole(_pausableFlow) {
         _pause(_pausableFlow);
     }
 
@@ -56,22 +57,22 @@ abstract contract PausableFlows is IPausableFlows, AccessControlUpgradeable {
         _unpause(_pausableFlow);
     }
 
-    // INTERNAL FUNCTIONS 
-    
-    function _pause(bytes4 _pausableFlow) internal {
-      PausableFlowsStorageData storage _sd = _getPausableFlowsStorage();
-      if (_sd.flowsPauseStates[_pausableFlow]) revert PauseFlowIsAlreadyPaused();
+    // INTERNAL FUNCTIONS
 
-      _sd.flowsPauseStates[_pausableFlow] = true;
-      emit FlowPaused(_pausableFlow, msg.sender);
+    function _pause(bytes4 _pausableFlow) internal {
+        PausableFlowsStorageData storage _sd = _getPausableFlowsStorage();
+        if (_sd.flowsPauseStates[_pausableFlow]) revert PauseFlowIsAlreadyPaused();
+
+        _sd.flowsPauseStates[_pausableFlow] = true;
+        emit FlowPaused(_pausableFlow, msg.sender);
     }
 
-    function _unpause(bytes4 _pausableFlow) internal  {
-      PausableFlowsStorageData storage _sd = _getPausableFlowsStorage();
-      if (!_sd.flowsPauseStates[_pausableFlow]) revert UnpausingFlowIsAlreadyUnpaused();
+    function _unpause(bytes4 _pausableFlow) internal {
+        PausableFlowsStorageData storage _sd = _getPausableFlowsStorage();
+        if (!_sd.flowsPauseStates[_pausableFlow]) revert UnpausingFlowIsAlreadyUnpaused();
 
-      _sd.flowsPauseStates[_pausableFlow] = false;
-      emit FlowUnpaused(_pausableFlow, msg.sender);
+        _sd.flowsPauseStates[_pausableFlow] = false;
+        emit FlowUnpaused(_pausableFlow, msg.sender);
     }
 
     function _revertIfFlowPaused(bytes4 _pausableFlow) internal view {
@@ -85,5 +86,4 @@ abstract contract PausableFlows is IPausableFlows, AccessControlUpgradeable {
     function _getPausableFlowsStorage() internal pure returns (PausableFlowsStorageData storage _sd) {
         return PausableFlowsStorage.load();
     }
-
 }

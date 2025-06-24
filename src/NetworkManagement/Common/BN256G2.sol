@@ -81,13 +81,11 @@ library BN256G2 {
      * @param pt1yy Coefficient 2 of y
      * @return (pt2xx, pt2xy, pt2yx, pt2yy)
      */
-    function ecTwistMul(
-        uint256 s,
-        uint256 pt1xx,
-        uint256 pt1xy,
-        uint256 pt1yx,
-        uint256 pt1yy
-    ) internal view returns (uint256, uint256, uint256, uint256) {
+    function ecTwistMul(uint256 s, uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy)
+        internal
+        view
+        returns (uint256, uint256, uint256, uint256)
+    {
         uint256 pt1zx = 1;
         if (pt1xx == 0 && pt1xy == 0 && pt1yx == 0 && pt1yy == 0) {
             pt1xx = 1;
@@ -200,10 +198,8 @@ library BN256G2 {
      * @return Inv([xx, xy])
      */
     function _fq2inv(uint256 x, uint256 y) internal view returns (uint256, uint256) {
-        uint256 inv = _modInv(
-            addmod(mulmod(y, y, FIELD_MODULUS), mulmod(x, x, FIELD_MODULUS), FIELD_MODULUS),
-            FIELD_MODULUS
-        );
+        uint256 inv =
+            _modInv(addmod(mulmod(y, y, FIELD_MODULUS), mulmod(x, x, FIELD_MODULUS), FIELD_MODULUS), FIELD_MODULUS);
         return (mulmod(x, inv, FIELD_MODULUS), FIELD_MODULUS - mulmod(y, inv, FIELD_MODULUS));
     }
 
@@ -233,12 +229,14 @@ library BN256G2 {
      * @param a The operand to calcualte the inverse of
      * @param n The modulus
      * @return result Inv(a)modn
-     **/
+     *
+     */
     function _modInv(uint256 a, uint256 n) internal view returns (uint256 result) {
         bool success;
-        // prettier-ignore
+        // forgefmt: disable-next-line
         // slither-disable-next-line assembly
-        assembly { // solhint-disable-line no-inline-assembly
+        assembly {
+            // solhint-disable-line no-inline-assembly
             let freemem := mload(0x40)
             mstore(freemem, 0x20)
             mstore(add(freemem, 0x20), 0x20)
@@ -246,40 +244,31 @@ library BN256G2 {
             mstore(add(freemem, 0x60), a)
             mstore(add(freemem, 0x80), sub(n, 2))
             mstore(add(freemem, 0xA0), n)
-            success := staticcall(
-                sub(gas(), 2000),
-                5,
-                freemem,
-                0xC0,
-                freemem,
-                0x20
-            )
+            success := staticcall(sub(gas(), 2000), 5, freemem, 0xC0, freemem, 0x20)
             result := mload(freemem)
         }
         if (!success) revert ModularInverseError();
     }
 
     /**
-  * @notice Converts a point from jacobian to affine
-  * @param pt1xx First point x real coordinate
-  * @param pt1xy First point x imaginary coordinate
-  * @param pt1yx First point y real coordinate
-  * @param pt1yy First point y imaginary coordinate
-  * @param pt1zx First point z real coordinate
-  * @param pt1zy First point z imaginary coordinate
-  * @return pt2xx (x real affine coordinate)
-            pt2xy (x imaginary affine coordinate)
-            pt2yx (y real affine coordinate)
-            pt1zy (y imaginary affine coordinate)
-  **/
-    function _fromJacobian(
-        uint256 pt1xx,
-        uint256 pt1xy,
-        uint256 pt1yx,
-        uint256 pt1yy,
-        uint256 pt1zx,
-        uint256 pt1zy
-    ) internal view returns (uint256, uint256, uint256, uint256) {
+     * @notice Converts a point from jacobian to affine
+     * @param pt1xx First point x real coordinate
+     * @param pt1xy First point x imaginary coordinate
+     * @param pt1yx First point y real coordinate
+     * @param pt1yy First point y imaginary coordinate
+     * @param pt1zx First point z real coordinate
+     * @param pt1zy First point z imaginary coordinate
+     * @return pt2xx (x real affine coordinate)
+     *         pt2xy (x imaginary affine coordinate)
+     *         pt2yx (y real affine coordinate)
+     *         pt1zy (y imaginary affine coordinate)
+     *
+     */
+    function _fromJacobian(uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy, uint256 pt1zx, uint256 pt1zy)
+        internal
+        view
+        returns (uint256, uint256, uint256, uint256)
+    {
         uint256 invzx;
         uint256 invzy;
         uint256[4] memory pt2;
@@ -304,7 +293,8 @@ library BN256G2 {
      * @param pt2zx Second point z real coordinate
      * @param pt2zy Second point z imaginary coordinate
      * @return pt3 = pt1+pt2 in jacobian
-     **/
+     *
+     */
     function ecTwistAddJacobian(
         uint256 pt1xx,
         uint256 pt1xy,
@@ -320,24 +310,12 @@ library BN256G2 {
         uint256 pt2zy
     ) internal pure returns (uint256[6] memory pt3) {
         if (pt1zx == 0 && pt1zy == 0) {
-            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) = (
-                pt2xx,
-                pt2xy,
-                pt2yx,
-                pt2yy,
-                pt2zx,
-                pt2zy
-            );
+            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) =
+                (pt2xx, pt2xy, pt2yx, pt2yy, pt2zx, pt2zy);
             return pt3;
         } else if (pt2zx == 0 && pt2zy == 0) {
-            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) = (
-                pt1xx,
-                pt1xy,
-                pt1yx,
-                pt1yy,
-                pt1zx,
-                pt1zy
-            );
+            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) =
+                (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
             return pt3;
         }
 
@@ -348,14 +326,8 @@ library BN256G2 {
 
         if (pt2xx == pt3[PTZX] && pt2xy == pt3[PTZY]) {
             if (pt2yx == pt3[PTYX] && pt2yy == pt3[PTYY]) {
-                (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) = _ecTwistDoubleJacobian(
-                    pt1xx,
-                    pt1xy,
-                    pt1yx,
-                    pt1yy,
-                    pt1zx,
-                    pt1zy
-                );
+                (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) =
+                    _ecTwistDoubleJacobian(pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
                 return pt3;
             }
             (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) = (1, 0, 1, 0, 0, 0);
@@ -390,7 +362,8 @@ library BN256G2 {
      * @param pt1zx Point z real coordinate
      * @param pt1zy Point z imaginary coordinate
      * @return pt2xx, pt2xy, pt2yx, pt2yy, pt2zx, pt2zy the coordinates of pt2 = 2*pt1
-     **/
+     *
+     */
     function _ecTwistDoubleJacobian(
         uint256 pt1xx,
         uint256 pt1xy,
@@ -434,7 +407,8 @@ library BN256G2 {
      * @param pt1zx Point z real coordinate
      * @param pt1zy Point z imaginary coordinate
      * @return pt2 a point representing pt2 = d*pt1 in jacobian coordinates
-     **/
+     *
+     */
     function _ecTwistMulJacobian(
         uint256 d,
         uint256 pt1xx,
@@ -461,14 +435,8 @@ library BN256G2 {
                     pt1zy
                 );
             }
-            (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy) = _ecTwistDoubleJacobian(
-                pt1xx,
-                pt1xy,
-                pt1yx,
-                pt1yy,
-                pt1zx,
-                pt1zy
-            );
+            (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy) =
+                _ecTwistDoubleJacobian(pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
 
             d = d / 2;
         }

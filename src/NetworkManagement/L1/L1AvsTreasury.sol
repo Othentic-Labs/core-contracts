@@ -13,27 +13,40 @@ $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
 
 import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
-import {ReentrancyGuardUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
-import "@othentic/NetworkManagement/Common/VaultStorage.sol";
-import {Vault} from "@othentic/NetworkManagement/Common/Vault.sol";
+import "@othentic/NetworkManagement/Common/AvsTreasuryStorage.sol";
+import {AvsTreasury} from "@othentic/NetworkManagement/Common/AvsTreasury.sol";
+import {IL1AvsTreasury} from "@othentic/NetworkManagement/L1/interfaces/IL1AvsTreasury.sol";
 import "@othentic/NetworkManagement/Common/RolesLibrary.sol";
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 
-contract L1Vault is Vault {
-    
+contract L1AvsTreasury is IL1AvsTreasury, AvsTreasury {
     function setAvsGovernance(address _avsGovernance) external onlyRole(RolesLibrary.AVS_FACTORY_ROLE) {
-        _getStorage().ownerVault = _avsGovernance;
+        _getStorage().avsTreasuryOwner = _avsGovernance;
         _grantRole(RolesLibrary.AVS_GOVERNANCE, _avsGovernance);
     }
-    
-    function withdrawRewards(address _operator, uint256 _lastPayedTask, uint256 _feeToClaim) external nonReentrant onlyRole(RolesLibrary.AVS_GOVERNANCE) returns (bool _success) {
+
+    function withdrawRewards(address _operator, uint256 _lastPayedTask, uint256 _feeToClaim)
+        external
+        nonReentrant
+        onlyRole(RolesLibrary.AVS_GOVERNANCE)
+        returns (bool _success)
+    {
         return super._withdrawRewards(_operator, _lastPayedTask, _feeToClaim);
     }
 
+    function depositERC20RewardsBack(uint256 _amount)
+        external
+        nonReentrant
+        onlyRole(RolesLibrary.AVS_GOVERNANCE)
+        returns (bool _success)
+    {
+        return _depositERC20RewardsBack(_amount);
+    }
+
     function getAvsGovernance() external view returns (address avsGovernance) {
-        return _getStorage().ownerVault;
+        return _getStorage().avsTreasuryOwner;
     }
 }

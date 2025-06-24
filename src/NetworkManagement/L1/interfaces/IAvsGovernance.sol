@@ -11,35 +11,56 @@ $$ \__$$ |  $$ |/  |$$ |  $$ |$$$$$$$$/ $$ |  $$ |  $$ |/  |$$ |$$ \_____
 $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  $$$$$$/     $$$$/  $$/   $$/  $$$$$$$/ $$/   $$/    $$$$/  $$/  $$$$$$$/
 */
-import { ISignatureUtils } from "@eigenlayer/contracts/interfaces/ISignatureUtils.sol";
-import { BLSAuthLibrary } from "@othentic/NetworkManagement/Common/BLSAuthLibrary.sol";
-import { IAccessControl } from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
+
+import {ISignatureUtils} from "@eigenlayer/contracts/interfaces/ISignatureUtils.sol";
+import {BLSAuthLibrary} from "@othentic/NetworkManagement/Common/BLSAuthLibrary.sol";
+import {IAccessControl} from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import {IRewardsCoordinator} from "@eigenlayer/contracts/interfaces/IRewardsCoordinator.sol";
+
 /**
  * @author Othentic Labs LTD.
  * @notice Terms of Service: https://www.othentic.xyz/terms-of-service
  */
 interface IAvsGovernance is IAccessControl {
-
-    struct StrategyMultiplier {
-      address strategy;
-      uint256 multiplier;
+    enum SharedSecurityProvider {
+        EigenLayer,
+        Symbiotic
     }
 
-    struct StrategyShares {
-      address strategy;
-      uint256 shares;
+    struct StakingContractInfo {
+        address stakingContract;
+        SharedSecurityProvider sharedSecurityProvider;
+    }
+
+    struct VotingPowerMultiplier {
+        address stakingContract;
+        uint256 multiplier;
+        SharedSecurityProvider sharedSecurityProvider;
+    }
+
+    struct StakingContractDetails {
+        address stakingContract;
+        uint256 stakeAmount;
+        SharedSecurityProvider sharedSecurityProvider;
+    }
+
+    struct StakingContractMinStakeInfo {
+        address stakingContract;
+        uint256 minStakeAmount;
     }
 
     struct Operator {
         uint256[4] blsKey;
-        uint256 numOfShares;
+        uint256 stake;
         bool isAllowlisted;
         bool isActive;
     }
 
-    struct PaymentRequestMessage {
-        address operator;
-        uint256 feeToClaim;
+    struct EigenRewardsSubmissionData {
+        uint32 startTimestamp;
+        uint32 duration;
+        uint256 totalRewards;
+        uint256 operatorCount;
     }
 
     struct RewardsReceiverModificationDetails {
@@ -53,51 +74,58 @@ interface IAvsGovernance is IAccessControl {
         address communityMultisig;
         address othenticRegistry;
         address messageHandler;
-        address vault;
+        address avsTreasury;
         address avsDirectoryContract;
         address allowlistSigner;
         string avsName;
-        address blsAuthSingleton; 
+        address blsAuthSingleton;
     }
 
-    event SetToken(address token);
-    event SetRewardsReceiverModificationDelay(uint256 modificationDelay);
-    event SetAvsGovernanceLogic(address avsGovernanceLogic);
-    event SetAvsGovernanceMultisig(address newAvsGovernanceMultisig);
-    event SetIsAllowlisted(bool isAllowlisted);
-    event SetMessageHandler(address newMessageHandler);
-    event SetOthenticRegistry(address othenticRegistry);
-    event SetAllowlistSigner(address allowlistSigner);
-    event SetSupportedStrategies(address[] strategies);
-    event SetAvsName(string avsName);
-    event QueuedRewardsReceiverModification(address operator, address receiver, uint256 delay);
-    event SetRewardsReceiver(address operator, address receiver);
-    event OperatorRegistered(address indexed operator, uint256[4] blsKey);
-    event OperatorUnregistered(address operator);
-    event SetAvsGovernanceMultiplierSyncer(address avsGovernanceMultiplierSyncer);
-    event SetStrategyMultiplier(address strategy, uint256 multiplier);
-    event MinVotingPowerSet(uint256 minVotingPower);
-    event MinSharesPerStrategySet(address strategy, uint256 minShares); 
-    event MaxEffectiveBalanceSet(uint256 maxEffectiveBalance);
-    event BLSAuthSingletonSet(address blsAuthSingleton);
-    
-    /**
-     * @dev Emitted when numOfOperatorsLimit is updated.
-     * @notice Number of operators limit can not be set below the number of active operators.
-     * @param newLimitOfNumOfOperators The updated number of oprators limit.
-     */
-    event SetNumOfOperatorsLimit(uint256 newLimitOfNumOfOperators);
+    struct OperatorRegistrationParams {
+        uint256[4] blsKey;
+        address rewardsReceiver;
+        BLSAuthLibrary.Signature blsRegistrationSignature;
+        bytes authToken;
+    }
 
+    struct SharedSecurityProviderSignature {
+        SharedSecurityProvider provider;
+        bytes data;
+    }
+
+    struct SymbioticOptInSignature {
+        uint48 deadline;
+        bytes data;
+    }
+
+    struct SymbioticOptOutSignature {
+        uint48 deadline;
+        bytes data;
+    }
+
+    // Events
+    event SetToken(address token);
+    event SetAvsName(string avsName);
+    event SetIsAllowlisted(bool isAllowlisted);
+    event setNewSupportedStakingContracts(address[] stakingContracts);
+    event QueuedRewardsReceiverModification(address indexed operator, address receiver, uint256 delay);
+    event SetRewardsReceiver(address indexed operator, address receiver);
+    event OperatorRegistered(address indexed operator, uint256[4] blsKey);
+    event OperatorUnregistered(address indexed operator);
+    event SetStakingContractMultiplier(address stakingContract, uint256 multiplier);
+    event OperatorRegisteredToEigenLayer(address operator);
+    event OperatorRegisteredToSymbiotic(address operator);
+    event OperatorUnregisteredToSymbiotic(address operator);
+    event NativeCoinNotSupportedForEigenRewards();
+    event RewardsCoordinatorReverted(bytes revertData);
+    event OperatorUnregisteredToEigenLayer(address operator);
+    event OperatorEjectedFromNetwork(address operator);
+    event DepositRewardsBackFailed();
+    event SetP2pAuthenticationEnabled(bool _isEnabled);
+
+    // Errors
+    error ZeroAddress();
     error Unauthorized(string message);
-    /** @notice Number of operators limit can not be set below the number of active operators.
-     *  @dev Restricted use to AVS_GOVERNANCE_MULTISIG role.
-     *  @param numOfOperatorsLimit Current number of operators limit.
-     *  @param numOfActiveOperators (Can not be set below the number of active operators).
-     */
-    error NumOfActiveOperatorsIsGreaterThanNumOfOperatorLimit(uint256 numOfOperatorsLimit, uint256 numOfActiveOperators);
-    /** Operator Number is has reached the defined limit. Consider contacting the AVS admin to increase the limit.
-     *  @param numOfOperatorsLimit Number of operators limit (AvsGovernanceStorageData.numOfOperatorsLimit).
-     */
     error NumOfOperatorsLimitReached(uint256 numOfOperatorsLimit);
     error OperatorNotRegistered();
     error OperatorAlreadyRegistered();
@@ -108,45 +136,73 @@ interface IAvsGovernance is IAccessControl {
     error InvalidAllowlistAuthToken();
     error ModificationDelayNotPassed();
     error InvalidSlashingRate();
-    error InvalidStrategy();
+    error InvalidStakingContract();
     error AccessControlInvalidMultiplierSyncer();
     error InvalidMultiplierNotSet();
     error NotEnoughVotingPower();
+    error MissingAuthToken(bytes);
+    error EmptySharedSecurityProvidersList();
+    error InvalidSharedSecurityProviderList(uint256 arrayIndex);
+    error OperatorStillRegisteredToSharedSecurityProviders(address operator);
+    error EmptyAvsName();
+    error StakingContractsNotInAscendingOrder();
+    error InvalidMultiplier();
+    error TreasuryWithdrawRewardsFailed();
+    error NativeCoinNotSupportedForEigenRewardsError();
+    
+    // Functions
 
-    function isOperatorRegistered(address operator) external view returns (bool);
-    function numOfActiveOperators() external view returns (uint256);
+    /// @dev See extension contract for additional available methods implemented on AvsGovernanceExtension.sol
+    function EXTENSION_IMPLEMENTATION() external view returns (address);
 
-    //@obsolete - need to use numOfActiveOperators
-    function numOfOperators() external view returns (uint256);
-    /**
-     * @dev Increases the limit of number of operators of the AVS.
-     * @dev Restricted use to AVS_GOVERNANCE_MULTISIG role.
-     * @notice Number of operators limit can not be set below the number of active operators.
-     * @param newLimitOfNumOfOperators Updated number of operators limit.
-     */
-    function setNumOfOperatorsLimit(uint256 newLimitOfNumOfOperators) external;
-    function avsName() external view returns (string memory);
-    function vault() external view returns (address);
+    // -------------------- Operators Interface -------------------- //
+    function avsTreasury() external view returns (address);
     function getIsAllowlisted() external view returns (bool);
-    function getRewardsReceiver(address operator) external view returns (address);
-    function strategies() external view returns (address[] memory);
-    function strategyMultiplier(address _strategy) external view returns (uint256);
-    function registerAsOperator(uint256[4] calldata _blsKey, address _rewardsReceiver, ISignatureUtils.SignatureWithSaltAndExpiry memory _operatorSignature, BLSAuthLibrary.Signature calldata _blsRegistrationSignature) external;
-    function registerAsAllowedOperator(uint256[4] calldata _blsKey, bytes calldata _authToken, address _rewardsReceiver, ISignatureUtils.SignatureWithSaltAndExpiry memory _operatorSignature, BLSAuthLibrary.Signature calldata _blsRegistrationSignature) external;
+    function avsName() external view returns (string memory);
+    function minStakeAmountPerStakingContract(address) external view returns (uint256);
+    function minVotingPower() external view returns (uint256);
+    function maxEffectiveBalance() external view returns (uint256);
+    function stakingContracts() external view returns (address[] memory);
+    function multiplier(address) external view returns (uint256);
+    function getRewardsReceiver(address) external view returns (address);
+    function registerAsOperator(OperatorRegistrationParams calldata _operatorRegistrationParams) external;
+    function unregisterAsOperatorFromEigenLayer() external;
     function queueRewardsReceiverModification(address _rewardsReceiver) external;
     function completeRewardsReceiverModification() external;
-    function withdrawRewards(address _operator, uint256 _lastPayedTask, uint256 _feeToClaim) external;
-    function withdrawBatchRewards(PaymentRequestMessage[] memory _operators, uint256 _lastPayedTask) external;
-    function transferAvsGovernanceMultisig(address _newAvsGovernanceMultisig) external;
-    // @obsolete - use votingPower
-    function numOfShares(address _operator) external view returns (uint256);
     function votingPower(address _operator) external view returns (uint256);
-    function getDefaultStrategies() external view returns (address[] memory);
-    function getNumOfOperatorsLimit() external view returns (uint256 numOfOperatorsLimitView);
-    function setMinSharesForStrategy(address _strategy, uint256 _minNumOfShares) external;
-    // IServiceManager interface
-    function updateAVSMetadataURI(string memory _metadataURI) external;
+    function votingPowerPerStakingContracts(address _operator, address[] calldata _stakingContracts)
+        external
+        view
+        returns (uint256);
+
+    // -------------------- Layer 2 Interface -------------------- //
+    function isOperatorRegistered(address operator) external view returns (bool);
+    function numOfActiveOperators() external view returns (uint256);
+    function ejectOperatorFromNetwork(address _operator) external;
+    function createOperatorDirectedAVSRewardsSubmission(
+        IRewardsCoordinator.OperatorReward[] memory _operators,
+        uint256 _lastPayedTask,
+        bytes memory _data,
+        uint32 _remoteId
+    ) external;
+
+    // -------------------- AvsGovernance Multisig Interface -------------------- //
+    function setSupportedStakingContracts(StakingContractInfo[] memory _stakingContractsDetails) external;
+    function setP2pAuthenticationEnabled(bool _p2pAuthenticationEnabled) external;
+
+    // -------------------- IServiceManager Interface -------------------- //
     function getOperatorRestakedStrategies(address operator) external view returns (address[] memory);
     function getRestakeableStrategies() external view returns (address[] memory);
-    function avsDirectory() external view returns (address);
+
+    // -------------------- Register AVS to shared security provider -------------------- //
+    function registerAvsToEigenLayer(string calldata metadataURI) external;
+    function registerAvsToSymbiotic() external;
+
+    // -------------------- Register Operator to shared security provider -------------------- //
+    function registerOperatorToEigenLayer(
+        ISignatureUtils.SignatureWithSaltAndExpiry memory _eigenSig,
+        bytes calldata _authToken
+    ) external;
+    function registerOperatorToSymbiotic(SymbioticOptInSignature memory _symbioticSig, bytes calldata _authToken)
+        external;
 }

@@ -12,7 +12,7 @@ $$    $$/   $$  $$/ $$ |  $$ |$$       |$$ |  $$ |  $$  $$/ $$ |$$       |
  $$$$$$/     $$$$/  $$/   $$/  $$$$$$$/ $$/   $$/    $$$$/  $$/  $$$$$$$/
 */
 
-import { BLS } from "@othentic/NetworkManagement/Common/BLS.sol";
+import {BLS} from "@othentic/NetworkManagement/Common/BLS.sol";
 
 library BLSAuthLibrary {
     using BLS for uint256[2];
