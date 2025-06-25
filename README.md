@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://www.othentic.xyz/"><img src="https://cdn.prod.website-files.com/65c8926a6b9399bd75cd1c02/661ee2fa17a584a2ea884221_Favicon-White%20(1).png" alt="Othentic" width="200"></a> 
+  <a href="https://www.othentic.xyz/"><img src="https://raw.githubusercontent.com/Othentic-Labs/core-contracts/a6cff1f17af2c9a94d84cd4b5de89e0b6667a5af/image.png" alt="Othentic" width="200"></a> 
 </p>
 
 <h4 align="center">The Development Framework for Distributed Systems</h4>
